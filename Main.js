@@ -1,0 +1,23 @@
+const express=require('express')
+const db=require('./config/config')
+const cors=require('cors')
+const path=require('path')
+db()
+const publicroute=require('./routes/Public')
+const userroute=require('./routes/User')
+const companyroute=require('./routes/Company')
+const adminroute=require('./routes/Admin')
+const app=express()
+app.use(express.json())
+app.use(express.urlencoded({extended:true}))
+app.use(cors())
+app.use('/media',express.static(path.join(__dirname,'media')))
+app.use('',publicroute)
+app.use('',userroute)
+app.use('',companyroute)
+app.use('',adminroute)
+
+
+app.listen(process.env.PORT,()=>{
+    console.log(`http://localhost:${process.env.PORT}`)
+})
