@@ -352,7 +352,25 @@ router.post('/uploadresume',uploadresume.single('resume'),async(req,res)=>{
 
 router.post('/fetchresume',uploadresume.none(),async(req,res)=>{
   const data=await resumemodel.findOne({user:req.body.userid})
-  return res.json({data:data.generatedPdf})
+  return res.json({data:data.generatedPdf,id:data._id})
+})
+
+router.post('/deleteselectedrecord',upload.none(),async(req,res)=>{
+  const id=req.body.id
+  const type=req.body.type
+  console.log(type) 
+  if(type==="skill"){
+    await skillsmodel.findByIdAndDelete(id)
+  }else if(type==="education"){
+    await educationmodel.findByIdAndDelete(id)
+  }else if(type==="certificate"){
+    await certificationmodel.findByIdAndDelete(id)
+  }else if(type==="experience"){
+    await experiencemodel.findByIdAndDelete(id)
+  }else{
+    await resumemodel.findByIdAndDelete(id)
+  }
+  
 })
 
 module.exports=router 
