@@ -1,1 +1,6 @@
 node_modules/
+/media/*
+!/media/profile/.gitkeep
+!/media/post/.gitkeep
+!/media/resume/.gitkeep
+!/media/certificate/.gitkeep

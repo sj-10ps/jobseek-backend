@@ -9,9 +9,11 @@ const certificationmodel=require('../models/certification')
 const experiencemodel=require('../models/experience')
 const educationmodel=require('../models/education')
 const skillsmodel=require('../models/skills')
+const resumemodel=require('../models/resume')
 const multer=require('multer')
 const { default: mongoose } = require('mongoose')
 const comment = require('../models/comment')
+const path=require('path')
 const storage=multer.diskStorage({
     destination:(req,file,cb)=>{
         cb(null,'media/post')
@@ -30,9 +32,50 @@ const storageprofile=multer.diskStorage({
         cb(null,Date.now()+".jpg")
     }
 })
+
+const storagecertificate = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'media/certificate'); // Make sure this folder exists
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, Date.now() + ext);
+  },
+  
+});
+
+
+
+const filefilter=(req,file,cb)=>{
+ const allowedTypes = /jpeg|jpg|png|pdf|doc|docx/;
+ const extname=allowedTypes.test(path.extname(file.originalname).toLowerCase())
+ const mimetype = allowedTypes.test(file.mimetype);
+ if (extname && mimetype) {
+  cb(null, true);
+} else {
+  cb(new Error('Only image, PDF, and DOC/DOCX files are allowed'));
+}
+}
+
+
+const storageresume=multer.diskStorage({
+  destination:(req,file,cb)=>{
+    cb(null,'media/resume')
+  },
+  filename:(req,file,cb)=>{
+    const ext=path.extname(file.originalname)
+    cb(null,Date.now()+ext)
+  }
+})
+
+
+
 const upload=multer({storage:storage})
 
+const uploadcertificate=multer({storage:storagecertificate,fileFilter:filefilter})
+
 const uploadprofile=multer({storage:storageprofile})
+const uploadresume=multer({storage:storageresume})
 router.post('/fetchprofile',async(req,res)=>{
     const {userid}=req.body
     
@@ -174,7 +217,8 @@ router.post('/fetchdetails',async(req,res)=>{
     const educationdata=await educationmodel.find({user:userid})
     const experiencedata=await experiencemodel.find({user:userid})
     const skillsdata=await skillsmodel.find({user:userid})
- 
+
+    console.log(certificatedata)
   
     return res.json({status:'ok',profiledata:profiledata,certificatedata:certificatedata,educationdata:educationdata,experiencedata:experiencedata,skillsdata:skillsdata})
 })
@@ -206,5 +250,109 @@ router.post('/profileUpdate',uploadprofile.single('image'),async(req,res)=>{
   
 })
 
+
+router.post('/uploadeducationdetails',upload.none(),async(req,res)=>{
+  const {institute,field,degree,extra,startdate,enddate,userid} =req.body
+  const datatosave=new educationmodel({
+    institute:institute,
+   field: field,
+   degree: degree,
+   startdate:startdate,
+    enddate:enddate,
+    extra:extra,
+    user:userid
+  })
+  try{
+    await datatosave.save()
+    return res.json({status:"ok"})
+  }catch{
+      return res.json({status:"failed"})
+  }
+})
+
+
+router.post('/uploadexperiencedetails',upload.none(),(req,res)=>{
+  const {company,role,startdate,enddate,location,description,userid}=req.body
+  const datatosave=new experiencemodel({
+    company:company,
+    role:role,
+    startdate:startdate,
+    enddate:enddate,
+    location:location,
+    description:description,
+    user:userid,
+  })
+  try{
+  datatosave.save()
+  return res.json({status:"ok"})
+}catch{
+  return res.json({status:"failed"})
+}
+})
+
+
+router.post('/uploadskills', upload.none(), async (req, res) => {
+  const { skill,proficiency, userid } = req.body;
+
+  const datatosave = new skillsmodel({
+    skill: skill,
+    level:proficiency,
+    user: userid,
+  });
+
+  try {
+    await datatosave.save();
+    return res.json({ status: "ok" });
+  } catch (error) {
+    console.error(error);
+    return res.json({ status: "failed" });
+  }
+});
+
+router.post('/certification',uploadcertificate.single('media') ,async (req, res) => {
+  console.log(req.body.userid)
+  try {
+    const cert = new certificationmodel({
+      title:req.body.title,
+      user: req.body.userid,
+      issued:req.body.issued,
+      issuedate:req.body.issuedate,
+      credentialid:req.body.credentialid,
+      credentialurl:req.body.credentialurl,
+      media:req.file.filename
+    });
+    const saved = await cert.save();
+    res.status(200).json(saved);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+
+router.post('/uploadresume',uploadresume.single('resume'),async(req,res)=>{
+  
+ const existing=await resumemodel.findOne({user:req.body.userid,templateType:'default'})
+ if(existing){
+  const id=existing._id
+  const data=await resumemodel.findByIdAndUpdate(id,{$set:{generatedPdf:req.file.filename}})
+  return res.json({status:"ok",filename:data.generatedPdf})
+ }else{
+ const datatosave= new resumemodel({
+    user:req.body.userid,
+    templateType:'default',
+    generatedPdf:req.file.filename
+  })
+  const data=await datatosave.save()
+  return res.json({status:"ok",filename:data.generatedPdf})
+ }
+
+  
+})
+
+
+router.post('/fetchresume',uploadresume.none(),async(req,res)=>{
+  const data=await resumemodel.findOne({user:req.body.userid})
+  return res.json({data:data.generatedPdf})
+})
 
 module.exports=router 

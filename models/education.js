@@ -3,7 +3,7 @@ const educationSchema=new mongoose.Schema({
     institute:String,
     field:String,
     degree:String,
-    Startdate:Date,
+    startdate:Date,
     enddate:Date,
     extra:String,
     user:{

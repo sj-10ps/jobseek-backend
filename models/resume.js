@@ -6,7 +6,7 @@ const resumeSchema = new mongoose.Schema({
         ref: 'user'
     },
     templateType: String, // 'system' or 'custom'
-    templateName: String,  // template id or name
+   
     
     generatedPdf: String, // file path of generated resume pdf
     createdAt: {
