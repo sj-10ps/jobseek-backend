@@ -9,7 +9,10 @@ const jobSchema = new mongoose.Schema({
     salaryrange:String,
     experience: String,
     status: String,
-    applicantscount: Number,
+    applicantscount: {
+        type:Number,
+        default:0
+    },
     company: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'company'

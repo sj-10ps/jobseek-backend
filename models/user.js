@@ -5,6 +5,14 @@ const userSchema=new mongoose.Schema({
 firstname:String,
 lastname:String,
 email:String,
+professionaltitle:{
+ type:String,
+ default:null
+},
+summary:{
+type:String,
+default:null
+},
 age:{
     type:String,
     default:null

@@ -9,7 +9,7 @@ const connectionSchema=new mongoose.Schema({
         ref:'login'
     },
     followedat:{
-        type:Date,
+        type:Date,  
         default:Date.now()
     }
 })

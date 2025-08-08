@@ -6,4 +6,4 @@ const loginschema=new mongoose.Schema({
 })
 
 const login=mongoose.model('login',loginschema)
-module.exports=login            
+module.exports=login                

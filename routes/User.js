@@ -10,10 +10,15 @@ const experiencemodel=require('../models/experience')
 const educationmodel=require('../models/education')
 const skillsmodel=require('../models/skills')
 const resumemodel=require('../models/resume')
+const connectionmodel=require('../models/connection')
+const jobmodel=require('../models/job')
+const applicantmodel=require('../models/applicant')
 const multer=require('multer')
 const { default: mongoose } = require('mongoose')
 const comment = require('../models/comment')
 const path=require('path')
+const { type } = require('os')
+const user = require('../models/user')
 const storage=multer.diskStorage({
     destination:(req,file,cb)=>{
         cb(null,'media/post')
@@ -80,7 +85,7 @@ router.post('/fetchprofile',async(req,res)=>{
     const {userid}=req.body
     
     const userdata=await usermodel.findById(userid)
-    console.log(userdata);
+  
     
  
     if(userdata){
@@ -122,9 +127,7 @@ router.post('/updatelike',async(req,res)=>{
     const logid=req.body.logid
    
     const post=await postmodel.findById(postid)
-    if(post.likedby.includes(logid)){
-        res.json("already liked")
-    }else{
+   
         if(isliked){
             post.likes+=1
             post.likedby.push(logid)
@@ -134,7 +137,7 @@ router.post('/updatelike',async(req,res)=>{
         }
         await post.save()
         return res.json({status:"ok"})
-    }
+  
    
     
 })
@@ -145,7 +148,7 @@ router.post('/postcomment',upload.none(),async(req,res)=>{
     const logid=req.body.logid
     const comment=req.body.comment
     const postid=req.body.postid
-    console.log(logid,comment,postid)
+  
     const commentdata=new commentmodel({
         user:logid,
         comment:comment,
@@ -164,11 +167,11 @@ router.post('/fetchcomment', async (req, res) => {
   const postid = req.body.postid;   
   const data = await commentmodel.aggregate([
     {
-      $match: { post:new mongoose.Types.ObjectId(postid) }
+      $match: { post: new mongoose.Types.ObjectId(postid) }
     },
     {
       $lookup: {
-        from: 'user',
+        from: 'users',
         localField: 'user',
         foreignField: 'login',
         as: 'userData'
@@ -176,37 +179,31 @@ router.post('/fetchcomment', async (req, res) => {
     },
     {
       $lookup: {
-        from: 'company',
+        from: 'companies',
         localField: 'user',
         foreignField: 'login',
         as: 'companyData'
       }
     },
     {
-      $addFields: {
-        userData: { $arrayElemAt: ['$userData', 0] },
-        companyData: { $arrayElemAt: ['$companyData', 0] },
+      $project: {
+        comment: 1,
+        createdAt: 1,
         authorName: {
           $cond: {
-            if: { $gt: [{ $ifNull: ['$userData', null] }, null] },
-            then: '$userData.firstname',
-            else: '$companyData.companyname'
+            if: { $gt: [{ $size: '$userData' }, 0] },
+            then: { $arrayElemAt: ['$userData.firstname', 0] },
+            else: { $arrayElemAt: ['$companyData.name', 0] }
           }
         }
       }
-    },
-    {
-      $project: {
-        comment: 1,
-        authorName: 1,
-        createdAt: 1
-      }
     }
   ]);
- 
 
-  res.json({status:"ok",data:data});
+
+  res.json({ status: "ok", data: data });
 });
+
 
 
 router.post('/fetchdetails',async(req,res)=>{
@@ -218,7 +215,7 @@ router.post('/fetchdetails',async(req,res)=>{
     const experiencedata=await experiencemodel.find({user:userid})
     const skillsdata=await skillsmodel.find({user:userid})
 
-    console.log(certificatedata)
+ 
   
     return res.json({status:'ok',profiledata:profiledata,certificatedata:certificatedata,educationdata:educationdata,experiencedata:experiencedata,skillsdata:skillsdata})
 })
@@ -229,6 +226,8 @@ router.post('/profileUpdate',uploadprofile.single('image'),async(req,res)=>{
       firstname,
       lastname,
       email,
+      professionaltitle,
+      summary,
       age,
       gender,
       district,
@@ -241,7 +240,7 @@ router.post('/profileUpdate',uploadprofile.single('image'),async(req,res)=>{
 
     const image=req.file?req.file.filename:'pending'
      if(image==="pending"){
-      const updated=await usermodel.findByIdAndUpdate(userid,{firstname:firstname,lastname:lastname,email:email,age:age,gender:gender,district:district,state:state,phone:phone,linkedin:linkedin,github:github})
+      const updated=await usermodel.findByIdAndUpdate(userid,{firstname:firstname,lastname:lastname,email:email,professionaltitle:professionaltitle,summary:summary,age:age,gender:gender,district:district,state:state,phone:phone,linkedin:linkedin,github:github})
      }else{
       await usermodel.findByIdAndUpdate(userid,{image:image})
      }
@@ -310,7 +309,7 @@ router.post('/uploadskills', upload.none(), async (req, res) => {
 });
 
 router.post('/certification',uploadcertificate.single('media') ,async (req, res) => {
-  console.log(req.body.userid)
+ 
   try {
     const cert = new certificationmodel({
       title:req.body.title,
@@ -351,14 +350,17 @@ router.post('/uploadresume',uploadresume.single('resume'),async(req,res)=>{
 
 
 router.post('/fetchresume',uploadresume.none(),async(req,res)=>{
-  const data=await resumemodel.findOne({user:req.body.userid})
+  const data=await resumemodel.findOne({user:req.body.userid,templateType:'default'})
+  if(!data){
+     return res.json({data:'',id:''})
+  } 
   return res.json({data:data.generatedPdf,id:data._id})
 })
 
 router.post('/deleteselectedrecord',upload.none(),async(req,res)=>{
   const id=req.body.id
   const type=req.body.type
-  console.log(type) 
+
   if(type==="skill"){
     await skillsmodel.findByIdAndDelete(id)
   }else if(type==="education"){
@@ -370,6 +372,275 @@ router.post('/deleteselectedrecord',upload.none(),async(req,res)=>{
   }else{
     await resumemodel.findByIdAndDelete(id)
   }
+  
+})
+
+
+router.post('/uploadcustomresume',uploadresume.single('pdf'),async(req,res)=>{
+  const pdf=req.file.filename
+  const userid=req.body.userid
+  const existing=await resumemodel.findOne({user:userid,templateType:'custom'})
+  if(!existing){
+      const datatosave=new resumemodel({
+    user:userid,
+    templateType:'custom',
+    generatedPdf:pdf,
+  })
+  await datatosave.save()
+  return res.json({status:"ok"})
+  }else{
+    await resumemodel.findOneAndUpdate({user:userid,templateType:'custom'},{$set:{generatedPdf:req.file.filename}})
+    return res.json({status:"ok"})
+  }
+
+})
+
+router.post('/fetchcustomresume',upload.none(),async(req,res)=>{
+  const userid=req.body.userid
+  const resumedata=await resumemodel.findOne({user:userid,templateType:'custom'})
+  
+  return res.json({data:resumedata})
+})
+
+router.post('/fetchusercompanies',upload.none(),async(req,res)=>{
+  const query=req.body.query
+  
+  const userdata=await usermodel.find({firstname:{$regex:'^'+query,$options:'i'}}).limit(10)
+  const companydata=await companymodel.find({name:{$regex:'^'+query,$options:'i'},status:'approved'}).limit(10)
+
+  const formatteduser=userdata.map(user=>({
+    type:'user',
+    id:user._id,
+    name:user.firstname+' '+user.lastname||'',
+    ...user._doc  
+
+  }))
+  
+    const formattedcompany=companydata.map(com=>({
+    type:'company',
+    id:com._id,
+    ...com._doc
+  }))
+
+   const combineddata=[...formatteduser,...formattedcompany   ]
+
+
+
+  return res.json({data:combineddata})
+
+})
+
+
+router.post('/fetchallusercompanies',upload.none(),async(req,res)=>{
+  const query=req.body.query
+   const userdata=await usermodel.find({firstname:{$regex:'^'+query,$options:'i'}})
+  const companydata=await companymodel.find({name:{$regex:'^'+query,$options:'i'},status:"approved"})
+
+  const formatteduser=userdata.map(user=>({
+    type:'user',
+    id:user._id,
+    name:user.firstname+' '+user.lastname||'',
+    ...user._doc  
+
+  }))
+
+  const formattedcompany=companydata.map(com=>({
+    type:'company',
+    id:com._id,
+    ...com._doc
+  }))
+
+
+   const combineddata=[...formatteduser,...formattedcompany]
+    return res.json({data:combineddata})
+})
+
+
+router.post('/managefollowing',async(req,res)=>{
+ 
+  const followingid=req.body.followingid
+  const followerid=req.body.followerid
+  const existing=await connectionmodel.findOne({   userFollowed: followerid,
+      userfollowing: followingid})
+  if(existing){
+    await connectionmodel.findByIdAndDelete(existing._id)
+    return res.json({status:'unfollowed'})
+  }else{
+    const datatosave=new connectionmodel({
+       userFollowed: followerid,   
+    userfollowing: followingid   
+    })
+    await datatosave.save()
+     return res.json({status:'followed'})
+  }
+})
+
+
+router.post('/checkfollowstatus',async(req,res)=>{
+  const followingid=req.body.followingid
+  const followerid=req.body.followerid
+  const existing=await connectionmodel.findOne({userFollowed : followerid ,
+userfollowing :followingid  })
+  
+  if(existing){
+    return res.json({data:existing})
+  }else{
+     return res.json({data:[]})
+  }
+})
+
+
+
+
+router.post('/checkfollowstatusall',async(req,res)=>{
+
+  const followerid=req.body.followerid
+  const existing=await connectionmodel.find({userFollowed : followerid })
+  
+  
+    return res.json({data:existing})
+ 
+})
+
+
+
+router.post('/followingfollowercount', async (req, res) => {
+  try {
+    const logid = req.body.logid;
+
+    const followercount = await connectionmodel.countDocuments({ userfollowing: logid });
+    const followingcount = await connectionmodel.countDocuments({ userFollowed: logid });
+
+    const aggregatePipeline = (matchField, lookupField) => [
+      { $match: { [matchField]: new mongoose.Types.ObjectId(logid) } },
+      {
+        $lookup: {
+          from: 'logins',
+          localField: lookupField,
+          foreignField: '_id',
+          as: 'logindetails'
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: lookupField,
+          foreignField: 'login',
+          as: 'userdetails'
+        }
+      },
+      {
+        $lookup: {
+          from: 'companies',
+          localField: lookupField,
+          foreignField: 'login',
+          as: 'companydetails'
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          type: { $arrayElemAt: ["$logindetails.usertype", 0] },
+          data: {
+            $cond: [
+              { $eq: [{ $arrayElemAt: ["$logindetails.usertype", 0] }, "user"] },
+              {
+                id: { $arrayElemAt: ["$userdetails._id", 0] },
+                firstname:{$concat:[
+                  { $arrayElemAt: ["$userdetails.firstname", 0] } ,
+                  " ",
+                  { $arrayElemAt: ["$userdetails.lastname", 0] }
+                ]},
+                image: { $arrayElemAt: ["$userdetails.image", 0] },
+                logid: { $arrayElemAt: ["$userdetails.login", 0] }
+              
+              },
+              {
+                id: { $arrayElemAt: ["$companydetails._id", 0] },
+                name: { $arrayElemAt: ["$companydetails.name", 0] },
+                logo: { $arrayElemAt: ["$companydetails.logo", 0] },
+                logid: { $arrayElemAt: ["$companydetails.login", 0] }
+                
+              }
+            ]
+          }
+        }
+      }
+    ];
+
+    const followerdata = await connectionmodel.aggregate(aggregatePipeline('userfollowing', 'userFollowed'));
+    const followingdata = await connectionmodel.aggregate(aggregatePipeline('userFollowed', 'userfollowing'));
+    
+    
+
+    return res.json({
+      followercount,
+      followingcount,
+      followerdata,
+      followingdata
+    });
+
+  } catch (error) {
+    console.error('Error in /followingfollowercount:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
+router.get('/fetchalljobs',async(req,res)=>{
+   
+   const data=await jobmodel.find({status:'open'}).populate('company').exec()
+  return res.json({data:data})
+
+})
+
+
+router.post('/applyforjob',async(req,res)=>{
+  const type=req.body.type
+  
+  let resumedata
+  if(type==="default"){
+  resumedata=await resumemodel.findOne({user:req.body.userid,templateType:'default'})
+  }else{
+    resumedata=await resumemodel.findOne({user:req.body.userid,templateType:'custom'})
+  }
+
+
+  const datatosave=new applicantmodel({
+    job:req.body.jobid,
+    user:req.body.userid,
+    status:'pending',
+    resume:resumedata._id
+     
+  })
+  await datatosave.save();
+  await jobmodel.findByIdAndUpdate(req.body.jobid,{$inc:{applicantscount:1}})
+  console.log(resumedata)
+  return res.json({status:'ok'})
+})
+
+
+router.post('/appliedjobs',async(req,res)=>{
+  const data=await applicantmodel.find({user:req.body.userid}).populate({path:'job',populate:'company'})
+  console.log(data)
+  return res.json({data:data})
+})
+
+router.post('/fetchpreferredjob',async(req,res)=>{
+  const userskillsdocs=await skillsmodel.find({user:req.body.userid})
+  const userskills=userskillsdocs.map(skilldata=>skilldata.skill)
+  
+  const data=await jobmodel.find({skills:{$in:userskills},status:'open'})
+  
+  return res.json({data:data})
+
+})
+
+
+router.post('/uploadcomplaint',async(req,res)=>{
+  const userid=req.body.userid
   
 })
 

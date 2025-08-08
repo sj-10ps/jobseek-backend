@@ -34,8 +34,16 @@ updatedat:{
 login:{
     type:mongoose.Schema.Types.ObjectId,
     ref:'login'
+},
+status:{
+   type:String,
+   default:'pending'
+},
+description:{
+    type:String,
+    default:null
 }
-
+    
 })
 
 const company=mongoose.model('company',companySchema)
