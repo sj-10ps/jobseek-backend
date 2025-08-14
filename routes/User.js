@@ -51,16 +51,7 @@ const storagecertificate = multer.diskStorage({
 
 
 
-const filefilter=(req,file,cb)=>{
- const allowedTypes = /jpeg|jpg|png|pdf|doc|docx/;
- const extname=allowedTypes.test(path.extname(file.originalname).toLowerCase())
- const mimetype = allowedTypes.test(file.mimetype);
- if (extname && mimetype) {
-  cb(null, true);
-} else {
-  cb(new Error('Only image, PDF, and DOC/DOCX files are allowed'));
-}
-}
+
 
 
 const storageresume=multer.diskStorage({
@@ -70,14 +61,14 @@ const storageresume=multer.diskStorage({
   filename:(req,file,cb)=>{
     const ext=path.extname(file.originalname)
     cb(null,Date.now()+ext)
-  }
+  } 
 })
 
 
 
 const upload=multer({storage:storage})
 
-const uploadcertificate=multer({storage:storagecertificate,fileFilter:filefilter})
+const uploadcertificate=multer({storage:storagecertificate})
 
 const uploadprofile=multer({storage:storageprofile})
 const uploadresume=multer({storage:storageresume})
@@ -100,7 +91,7 @@ router.post('/fetchprofile',async(req,res)=>{
 router.post('/fetchpost',async(req,res)=>{
     const {userid}=req.body
     const postdata=await postmodel.find({user:userid}).sort({createdAt:-1})
-    
+   
     return res.json({status:"ok",data:postdata})
 })
 
@@ -195,10 +186,19 @@ router.post('/fetchcomment', async (req, res) => {
             then: { $arrayElemAt: ['$userData.firstname', 0] },
             else: { $arrayElemAt: ['$companyData.name', 0] }
           }
+        },
+        authorImage:{
+          $cond:{
+            if:{$gt:[{$size:'$userData'},0]},
+            then:{$arrayElemAt:['$userData.image',0]},
+            else:{$arrayElemAt:['$companyData.logo',0]}
+          }
         }
       }
     }
+
   ]);
+
 
 
   res.json({ status: "ok", data: data });
@@ -215,7 +215,7 @@ router.post('/fetchdetails',async(req,res)=>{
     const experiencedata=await experiencemodel.find({user:userid})
     const skillsdata=await skillsmodel.find({user:userid})
 
- 
+
   
     return res.json({status:'ok',profiledata:profiledata,certificatedata:certificatedata,educationdata:educationdata,experiencedata:experiencedata,skillsdata:skillsdata})
 })
@@ -309,11 +309,11 @@ router.post('/uploadskills', upload.none(), async (req, res) => {
 });
 
 router.post('/certification',uploadcertificate.single('media') ,async (req, res) => {
- 
+
   try {
     const cert = new certificationmodel({
       title:req.body.title,
-      user: req.body.userid,
+      user:req.body.userid,
       issued:req.body.issued,
       issuedate:req.body.issuedate,
       credentialid:req.body.credentialid,
@@ -329,7 +329,7 @@ router.post('/certification',uploadcertificate.single('media') ,async (req, res)
 
 
 router.post('/uploadresume',uploadresume.single('resume'),async(req,res)=>{
-  
+
  const existing=await resumemodel.findOne({user:req.body.userid,templateType:'default'})
  if(existing){
   const id=existing._id
@@ -372,13 +372,16 @@ router.post('/deleteselectedrecord',upload.none(),async(req,res)=>{
   }else{
     await resumemodel.findByIdAndDelete(id)
   }
+  return res.json({status:"ok"})
   
 })
 
 
 router.post('/uploadcustomresume',uploadresume.single('pdf'),async(req,res)=>{
+ 
   const pdf=req.file.filename
   const userid=req.body.userid
+ 
   const existing=await resumemodel.findOne({user:userid,templateType:'custom'})
   if(!existing){
       const datatosave=new resumemodel({
@@ -398,7 +401,7 @@ router.post('/uploadcustomresume',uploadresume.single('pdf'),async(req,res)=>{
 router.post('/fetchcustomresume',upload.none(),async(req,res)=>{
   const userid=req.body.userid
   const resumedata=await resumemodel.findOne({user:userid,templateType:'custom'})
-  
+   console.log(resumedata)
   return res.json({data:resumedata})
 })
 
@@ -440,7 +443,7 @@ router.post('/fetchallusercompanies',upload.none(),async(req,res)=>{
     type:'user',
     id:user._id,
     name:user.firstname+' '+user.lastname||'',
-    ...user._doc  
+    ...user._doc 
 
   }))
 
@@ -450,9 +453,10 @@ router.post('/fetchallusercompanies',upload.none(),async(req,res)=>{
     ...com._doc
   }))
 
-
+  
    const combineddata=[...formatteduser,...formattedcompany]
-    return res.json({data:combineddata})
+
+    return res.json({data:combineddata})    
 })
 
 
@@ -479,13 +483,15 @@ router.post('/managefollowing',async(req,res)=>{
 router.post('/checkfollowstatus',async(req,res)=>{
   const followingid=req.body.followingid
   const followerid=req.body.followerid
+   console.log(followerid,followingid)
   const existing=await connectionmodel.findOne({userFollowed : followerid ,
 userfollowing :followingid  })
+    console.log(existing)
   
   if(existing){
     return res.json({data:existing})
   }else{
-     return res.json({data:[]})
+     return res.json({data:null})
   }
 })
 
@@ -541,6 +547,7 @@ router.post('/followingfollowercount', async (req, res) => {
         $project: {
           _id: 0,
           type: { $arrayElemAt: ["$logindetails.usertype", 0] },
+            connectionId: "$_id",
           data: {
             $cond: [
               { $eq: [{ $arrayElemAt: ["$logindetails.usertype", 0] }, "user"] },
@@ -571,7 +578,7 @@ router.post('/followingfollowercount', async (req, res) => {
     const followerdata = await connectionmodel.aggregate(aggregatePipeline('userfollowing', 'userFollowed'));
     const followingdata = await connectionmodel.aggregate(aggregatePipeline('userFollowed', 'userfollowing'));
     
-    
+  
 
     return res.json({
       followercount,
@@ -592,6 +599,7 @@ router.post('/followingfollowercount', async (req, res) => {
 router.get('/fetchalljobs',async(req,res)=>{
    
    const data=await jobmodel.find({status:'open'}).populate('company').exec()
+  
   return res.json({data:data})
 
 })
@@ -617,23 +625,23 @@ router.post('/applyforjob',async(req,res)=>{
   })
   await datatosave.save();
   await jobmodel.findByIdAndUpdate(req.body.jobid,{$inc:{applicantscount:1}})
-  console.log(resumedata)
+ 
   return res.json({status:'ok'})
 })
 
 
 router.post('/appliedjobs',async(req,res)=>{
   const data=await applicantmodel.find({user:req.body.userid}).populate({path:'job',populate:'company'})
-  console.log(data)
+ 
   return res.json({data:data})
 })
 
 router.post('/fetchpreferredjob',async(req,res)=>{
   const userskillsdocs=await skillsmodel.find({user:req.body.userid})
   const userskills=userskillsdocs.map(skilldata=>skilldata.skill)
-  
-  const data=await jobmodel.find({skills:{$in:userskills},status:'open'})
-  
+    
+  const data=await jobmodel.find({skills:{$in:userskills},status:'open'}).populate('company')
+
   return res.json({data:data})
 
 })

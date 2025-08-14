@@ -10,6 +10,7 @@ const connectionmodel=require('../models/connection')
 const messagemodel=require('../models/message')
 const bcrypt = require("bcrypt");
 const login = require("../models/Login");
+const { route } = require("./User");
 
 const router = express.Router();
 const storage = multer.diskStorage({
@@ -26,7 +27,7 @@ const upload = multer({ storage: storage });
 
 router.post("/userregister", upload.none(), async (req, res) => {
   const { password, firstname, lastname, email } = req.body;
-
+ 
   const existing = await loginmodel.findOne({ email: email });
   if (existing) {
    return res.json({ status: "user already exists" });
@@ -104,9 +105,8 @@ router.post("/companyregister", upload.single("logo"), async (req, res) => {
 
 router.post("/login", upload.none(), async (req, res) => {
   const { email, password } = req.body;
-  console.log(email,password)
   const user = await loginmodel.findOne({ email: email });
-  
+  console.log(email,password)
   if (!user) {
     return res.json({ status: "User not found" });
   } else {
@@ -166,7 +166,7 @@ router.post("/createadmin", upload.none(), async (req, res) => {
 
 router.post("/forgotpassword", upload.none(), async (req, res) => {
   const email = req.body.email;
-  const existing = await loginmodel.findOne({ email: email });
+  const existing = await loginmodel.findOne({ email: email ,usertype:{$in:["user","company"]}});
   if (!existing) {
     return res.json({ status: "email not registered" });
   }
@@ -207,7 +207,7 @@ router.post('/fetchallposts',async(req,res)=>{
     {
       $lookup:{
         from:'users',
-        localField:'logindetails._id',
+        localField:'logindetails._id',  
         foreignField:'login',
         as:'userdetails'
 
@@ -226,6 +226,7 @@ router.post('/fetchallposts',async(req,res)=>{
       { $sort: { createdAt: -1 } }
    
   ])
+  console.log(data)
 
 
   return res.json({data:data})
@@ -369,6 +370,49 @@ router.get('/fetchmessagesenders',async(req,res)=>{
   return res.json({data:data})
 
 })
+
+
+
+  router.post('/fetchmessagingusers',async(req,res)=>{
+    console.log("hawegfifuewgiufwgiufewgiuf")
+    const logid=req.body.logid
+    
+    const following=await connectionmodel.find({userFollowed:logid})
+    const followingids=following.map(per=>per.userfollowing)
+    const messagesenders=await messagemodel.find({receiverId:logid})
+    const messagesenderids=messagesenders.map(per=>per.senderId)
+
+    const allmessagingusersids=[...new Set([
+      ...messagesenderids,
+      ...followingids
+    ])]
+    const allmessagingusers=await loginmodel.aggregate([
+      {$match:{_id:{$in:allmessagingusersids}}},
+      {
+        $lookup:{
+            from:'users',
+            localField:'_id',
+            foreignField:'login',
+            as:'userdetails'
+        }
+      },
+        {$unwind:{path:'$userdetails',preserveNullAndEmptyArrays:true}},
+  {      
+        $lookup:{
+          from:'companies',
+          localField:'_id',
+          foreignField:'login',
+          as:'companydetails'
+        }},
+        {$unwind:{path:'$companydetails',preserveNullAndEmptyArrays:true}}
+    ])
+
+    console.log("wdwdwd",allmessagingusers)
+
+  return res.json({status:"ok",data:allmessagingusers})
+    
+
+  })
 
 
 

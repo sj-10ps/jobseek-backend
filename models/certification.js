@@ -11,7 +11,7 @@
             ref:'user'
         }
     })
-
+ 
     const certification=mongoose.model('certification',certificationSchema)
     module.exports=certification
 

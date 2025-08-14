@@ -22,7 +22,7 @@ const server=http.createServer(app)
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: '*',
   credentials: true                
 }));
 app.use('/media',express.static(path.join(__dirname,'media')))
@@ -35,7 +35,7 @@ app.use('',adminroute)
 const connectedusers={}
 const io=new Server(server,{
     cors:{
-        origin:'http://localhost:3000',
+        origin:'*',
         methods:["GET","POST"],
          credentials: true 
     }
@@ -60,9 +60,9 @@ io.on("connection",(socket)=>{
             console.log(senderId,receiverId,text)
         }else{
              console.log('❌ Receiver not connected:', recieversocketid);
-        }
-     
-    socket.on('disconnect',()=>{
+        }    
+    })
+        socket.on('disconnect',()=>{
         console.log("user disconnected")
         for (let i in connectedusers){
             if(connectedusers[i]===socket.id){
@@ -70,10 +70,6 @@ io.on("connection",(socket)=>{
                 break
             }
         }
-    })
-
-       
-    
     })
 })
 

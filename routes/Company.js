@@ -19,7 +19,7 @@ const upload = multer({ storage: storage });
 
 router.post('/fetchcompanydetails',async(req,res)=>{
     const data=await companymodel.findById(req.body.companyid)
-    console.log(data)
+   
     return res.json({data:data})
 })
 

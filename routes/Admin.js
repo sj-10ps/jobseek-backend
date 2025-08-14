@@ -35,7 +35,7 @@ router.get('/getpendingcompanies',async(req,res)=>{
 })
 
 router.post('/approvecompany',async(req,res)=>{
-    const companyinstance=await companymodel.findByIdAndUpdate(req.body.comid,{$set:{status:'approved'}})
+    const companyinstance=await companymodel.findByIdAndUpdate(req.body.comid,{$set:{status:'approved',approvedat:Date.now()}})
     await loginmodel.findByIdAndUpdate(companyinstance.login,{$set:{usertype:'company'}})
     return res.json({status:"ok"})
 })
