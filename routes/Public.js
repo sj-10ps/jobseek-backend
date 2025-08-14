@@ -273,6 +273,7 @@ router.post('/fetchyourposts', async (req, res) => {
         { $unwind: { path: '$companydetails', preserveNullAndEmptyArrays: true } },
         { $sort: { createdAt: -1 } } 
     ]);
+    console.log(postdata)
     
     res.json({ data: postdata });
 });
@@ -280,7 +281,7 @@ router.post('/fetchyourposts', async (req, res) => {
 
   router.post('/messagespost', async (req, res) => {
     const { senderId, receiverId, text } = req.body;
-    console.log(senderId,receiverId,text)
+
     try {
       const message = new messagemodel({ senderId, receiverId, text });
       await message.save();
@@ -301,7 +302,9 @@ router.post('/fetchyourposts', async (req, res) => {
         ],
       }).sort({ timestamp: 1 });
   
+  
       res.json({data:messages});
+
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -374,7 +377,7 @@ router.get('/fetchmessagesenders',async(req,res)=>{
 
 
   router.post('/fetchmessagingusers',async(req,res)=>{
-    console.log("hawegfifuewgiufwgiufewgiuf")
+
     const logid=req.body.logid
     
     const following=await connectionmodel.find({userFollowed:logid})
@@ -407,7 +410,7 @@ router.get('/fetchmessagesenders',async(req,res)=>{
         {$unwind:{path:'$companydetails',preserveNullAndEmptyArrays:true}}
     ])
 
-    console.log("wdwdwd",allmessagingusers)
+
 
   return res.json({status:"ok",data:allmessagingusers})
     

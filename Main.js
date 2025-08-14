@@ -55,7 +55,6 @@ io.on("connection",(socket)=>{
         if(recieversocketid){
             io.to(recieversocketid).emit('receive_message',{
                senderId, receiverId, text
-
             })
             console.log(senderId,receiverId,text)
         }else{
