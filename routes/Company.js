@@ -4,6 +4,7 @@ const companymodel=require('../models/company')
 const jobmodel=require('../models/job')
 const applicantmodel=require('../models/applicant')
 const usermodel=require('../models/user')
+const skillmodel=require('../models/skills')
 const multer = require('multer')
 const {transporter}=require('./mailer')
 const storage = multer.diskStorage({
@@ -58,8 +59,26 @@ router.post('/viewapplicantdetails',async(req,res)=>{
   const jobid=req.body.jobid
   console.log(jobid)
   const data=await applicantmodel.find({job:jobid,status:'pending'}).populate('resume').populate('user')
-  console.log(data)
+
   return res.json({data:data})
+})
+
+router.post('/viewfilteredapplicants',async(req,res)=>{
+  const jobid=req.body.jobid  
+  console.log("fsssfs",jobid)
+  const job=await jobmodel.findOne({_id:jobid})
+  const jobskills=job.skills
+  const applicants=await applicantmodel.find({job:jobid,status:'pending'}).populate('user')
+  
+  const userids=applicants.map(app=>app.user._id)
+  const userwithskills=await skillmodel.find({user:{$in:userids},skill:{$in:jobskills}})
+  
+  const userwithskillsids=[...new Set(userwithskills.map(user=>user.user))] 
+  console.log(userwithskillsids)
+
+  const skilledapplicants=await applicantmodel.find({user:{$in:userwithskillsids},job:jobid,status:'pending'}).populate('resume').populate('user')
+  console.log("skilled",skilledapplicants)
+  return res.json({data:skilledapplicants})
 })
 
 

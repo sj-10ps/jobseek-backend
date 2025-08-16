@@ -647,9 +647,6 @@ router.post('/fetchpreferredjob',async(req,res)=>{
 })
 
 
-router.post('/uploadcomplaint',async(req,res)=>{
-  const userid=req.body.userid
-  
-})
+
 
 module.exports=router 
