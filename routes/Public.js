@@ -9,7 +9,8 @@ const postmodel=require('../models/post')
 const connectionmodel=require('../models/connection')
 const messagemodel=require('../models/message')
 const bcrypt = require("bcrypt");
-const login = require("../models/Login");
+
+const feedbackmodel=require('../models/feedback')
 const { route } = require("./User");
 
 const router = express.Router();
@@ -105,6 +106,7 @@ router.post("/companyregister", upload.single("logo"), async (req, res) => {
 
 router.post("/login", upload.none(), async (req, res) => {
   const { email, password } = req.body;
+  console.log(email,password)
   const user = await loginmodel.findOne({ email: email });
   console.log(email,password)
   if (!user) {
@@ -417,6 +419,17 @@ router.get('/fetchmessagesenders',async(req,res)=>{
 
   })
 
-
+  router.post('/uploadfeedback',async(req,res)=>{
+    const feedback=req.body.feedback
+    const logid=req.body.logid
+    console.log(feedback,logid);
+    
+    const datatosave=new feedbackmodel({
+       feedback:feedback,
+       sender:logid
+    })
+    await datatosave.save()
+    return res.json({status:"ok"})
+  })
 
 module.exports = router;

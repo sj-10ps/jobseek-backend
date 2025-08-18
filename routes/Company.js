@@ -65,7 +65,7 @@ router.post('/viewapplicantdetails',async(req,res)=>{
 
 router.post('/viewfilteredapplicants',async(req,res)=>{
   const jobid=req.body.jobid  
-  console.log("fsssfs",jobid)
+
   const job=await jobmodel.findOne({_id:jobid})
   const jobskills=job.skills
   const applicants=await applicantmodel.find({job:jobid,status:'pending'}).populate('user')
@@ -74,10 +74,10 @@ router.post('/viewfilteredapplicants',async(req,res)=>{
   const userwithskills=await skillmodel.find({user:{$in:userids},skill:{$in:jobskills}})
   
   const userwithskillsids=[...new Set(userwithskills.map(user=>user.user))] 
-  console.log(userwithskillsids)
+
 
   const skilledapplicants=await applicantmodel.find({user:{$in:userwithskillsids},job:jobid,status:'pending'}).populate('resume').populate('user')
-  console.log("skilled",skilledapplicants)
+
   return res.json({data:skilledapplicants})
 })
 
@@ -167,6 +167,16 @@ router.post('/inviteforinterview',async(req,res)=>{
     
     await transporter.sendMail(mailoptions)
     return res.json({status:"ok"})
+
+})
+
+
+router.post('/selecteduserstotext',async(req,res)=>{
+  const companyid=req.body.comid
+  const jobs=await jobmodel.find({company:companyid})
+  const jobids=jobs.map(j=>j._id)
+  const applicantsdata=await applicantmodel.find({job:{$in:jobids},status:{$in:['selected','invited']}}).populate('user')
+  return res.json({data:applicantsdata})
 
 })
 

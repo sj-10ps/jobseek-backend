@@ -19,6 +19,7 @@ const comment = require('../models/comment')
 const path=require('path')
 const { type } = require('os')
 const user = require('../models/user')
+const job = require('../models/job')
 const storage=multer.diskStorage({
     destination:(req,file,cb)=>{
         cb(null,'media/post')
@@ -639,10 +640,39 @@ router.post('/appliedjobs',async(req,res)=>{
 router.post('/fetchpreferredjob',async(req,res)=>{
   const userskillsdocs=await skillsmodel.find({user:req.body.userid})
   const userskills=userskillsdocs.map(skilldata=>skilldata.skill)
-    
-  const data=await jobmodel.find({skills:{$in:userskills},status:'open'}).populate('company')
+  const minmatch=3
+    const jobs = await jobmodel.aggregate([
+      {
+        $addFields: {
+          matchedSkills: { $setIntersection: ["$skills", userskills] }
+        }
+      },
+      {
+    $match: {
+      $expr: {
+        $or: [
+          { $gte: [{ $size: "$matchedSkills" }, minmatch] },          // case 1
+          { $eq: [{ $size: "$matchedSkills" }, {$size:"$skills"}] }   // case 2
+        ]
+      }
+    }
+  },
+      {
+        $lookup: {
+          from: "companies",         
+          localField: "company",      
+          foreignField: "_id",
+          as: "company"
+        }
+      },
+      { $unwind: "$company" } 
+    ]);
+ 
 
-  return res.json({data:data})
+  res.json({data:jobs})
+  
+    
+
 
 })
 
