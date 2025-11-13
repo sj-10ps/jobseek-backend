@@ -1,7 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const jwt = require("jsonwebtoken");
-const { transporter } = require("./mailer");
+// const { transporter } = require("./mailer");
 const usermodel = require("../models/user");
 const loginmodel = require("../models/Login");
 const companymodel = require("../models/company");
@@ -10,8 +10,12 @@ const connectionmodel=require('../models/connection')
 const messagemodel=require('../models/message')
 const bcrypt = require("bcrypt");
 
+const {Resend}=require('resend')
+
 const feedbackmodel=require('../models/feedback')
 const { route } = require("./User");
+
+const resend=new Resend(process.env.RESENDURL)
 
 const router = express.Router();
 const storage = multer.diskStorage({
@@ -174,7 +178,7 @@ router.post("/forgotpassword", upload.none(), async (req, res) => {
   }
   const token = jwt.sign({ userId: existing._id }, "sj", { expiresIn: "15m" });
   const resetlink = `https://jobseek-frontend-e93g.onrender.com/forgotpost/${token}`;
-  await transporter.sendMail({
+  await resend.emails.send({
     from: "pssj8208@gmail.com",
     to: existing.email,
     subject: "Reset password",

@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "node Main.js",
-    "dev":"nodemon Main.js"
+    "dev": "nodemon Main.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -17,6 +17,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^7.0.5",
     "nodemon": "^3.1.10",
+    "resend": "^6.4.2",
     "socket.io": "^4.8.1"
   }
 }
