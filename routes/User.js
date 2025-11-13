@@ -20,50 +20,62 @@ const path=require('path')
 const { type } = require('os')
 const user = require('../models/user')
 const job = require('../models/job')
-const storage=multer.diskStorage({
-    destination:(req,file,cb)=>{
-        cb(null,'media/post')
-    },
-    filename:(req,file,cb)=>{
-        cb(null,Date.now()+".jpg")
-    }
+const { v2: cloudinary } = require('cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+cloudinary.config({
+   cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+})
+// const storage=multer.diskStorage({
+//     destination:(req,file,cb)=>{
+//         cb(null,'media/post')
+//     },
+//     filename:(req,file,cb)=>{
+//         cb(null,Date.now()+".jpg")
+//     }
+// })
+
+const storage=new CloudinaryStorage({
+  cloudinary,
+  params:{
+    folder:'post',
+    allowed_formats: ['jpg', 'png', 'jpeg'],
+  }
 })
 
 
-const storageprofile=multer.diskStorage({
-    destination:(req,file,cb)=>{
-        cb(null,'media/profile')
-    },
-    filename:(req,file,cb)=>{
-        cb(null,Date.now()+".jpg")
-    }
+const storageprofile=new CloudinaryStorage({
+  cloudinary,
+  params:{
+    folder:'profile',
+    allowed_formats: ['jpg', 'png', 'jpeg'],
+  }
 })
 
-const storagecertificate = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'media/certificate'); // Make sure this folder exists
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, Date.now() + ext);
-  },
-  
-});
+const storagecertificate = new CloudinaryStorage({
+  cloudinary,
+  params:{
+    folder:'certificate',
 
-
-
-
-
-
-const storageresume=multer.diskStorage({
-  destination:(req,file,cb)=>{
-    cb(null,'media/resume')
-  },
-  filename:(req,file,cb)=>{
-    const ext=path.extname(file.originalname)
-    cb(null,Date.now()+ext)
-  } 
+  }
 })
+
+
+
+
+
+
+
+const storageresume=new CloudinaryStorage({
+  cloudinary,
+  params:{
+    folder:'resume',
+    resource_type:'raw'
+  }
+})
+
 
 
 
@@ -97,7 +109,7 @@ router.post('/fetchpost',async(req,res)=>{
 })
 
 router.post('/uploadpost',upload.single('file'),async(req,res)=>{
-    const file=req.file.filename
+    const file=req.file.path
     const des=req.body.des
     const postdata=new postmodel({
         media:file,
@@ -239,7 +251,7 @@ router.post('/profileUpdate',uploadprofile.single('image'),async(req,res)=>{
       userid
     } = req.body;
 
-    const image=req.file?req.file.filename:'pending'
+    const image=req.file?req.file.path:'pending'
      if(image==="pending"){
       const updated=await usermodel.findByIdAndUpdate(userid,{firstname:firstname,lastname:lastname,email:email,professionaltitle:professionaltitle,summary:summary,age:age,gender:gender,district:district,state:state,phone:phone,linkedin:linkedin,github:github})
      }else{
@@ -319,7 +331,7 @@ router.post('/certification',uploadcertificate.single('media') ,async (req, res)
       issuedate:req.body.issuedate,
       credentialid:req.body.credentialid,
       credentialurl:req.body.credentialurl,
-      media:req.file.filename
+      media:req.file.path
     });
     const saved = await cert.save();
     res.status(200).json(saved);
@@ -334,13 +346,13 @@ router.post('/uploadresume',uploadresume.single('resume'),async(req,res)=>{
  const existing=await resumemodel.findOne({user:req.body.userid,templateType:'default'})
  if(existing){
   const id=existing._id
-  const data=await resumemodel.findByIdAndUpdate(id,{$set:{generatedPdf:req.file.filename}})
+  const data=await resumemodel.findByIdAndUpdate(id,{$set:{generatedPdf:req.file.path}})
   return res.json({status:"ok",filename:data.generatedPdf})
  }else{
  const datatosave= new resumemodel({
     user:req.body.userid,
     templateType:'default',
-    generatedPdf:req.file.filename
+    generatedPdf:req.file.path
   })
   const data=await datatosave.save()
   return res.json({status:"ok",filename:data.generatedPdf})
@@ -379,8 +391,10 @@ router.post('/deleteselectedrecord',upload.none(),async(req,res)=>{
 
 
 router.post('/uploadcustomresume',uploadresume.single('pdf'),async(req,res)=>{
- 
-  const pdf=req.file.filename
+
+  console.log(req.file.path)
+   console.log("wekjfhfweiufwuidhdwqiuh")
+  const pdf=req.file.path
   const userid=req.body.userid
  
   const existing=await resumemodel.findOne({user:userid,templateType:'custom'})
@@ -393,7 +407,7 @@ router.post('/uploadcustomresume',uploadresume.single('pdf'),async(req,res)=>{
   await datatosave.save()
   return res.json({status:"ok"})
   }else{
-    await resumemodel.findOneAndUpdate({user:userid,templateType:'custom'},{$set:{generatedPdf:req.file.filename}})
+    await resumemodel.findOneAndUpdate({user:userid,templateType:'custom'},{$set:{generatedPdf:req.file.path}})
     return res.json({status:"ok"})
   }
 

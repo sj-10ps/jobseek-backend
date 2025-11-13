@@ -1,0 +1,640 @@
+Cloud Native, DevOps, Agile, and NoSQL - Final Project Overview
+Estimated time needed: 5 minutes
+
+You will have the opportunity to take your Cloud Native, DevOps, Agile, and NoSQL skills and put them into action in a project that integrates these skills. You will receive a boilerplate code for the Tax Calculator app to work with.
+
+Then using the skills you learned in this course, you will plan and implement the improvements in the application; while following CI/CD, Epics, and Stories, modernizing the application, and using containers.
+
+Objectives:
+Plan the changes using the epic and stories
+Containerize the application
+Run unit tests as part of the pipeline
+Deploy the application when all tests pass
+Project Breakdown
+Part A: Plan your changes
+
+Create the epic
+Create the stories
+Part B: Modernize the application
+
+Containerize the application
+Deploy the containerized application on IBM Cloud
+Part C: Enhance DevOps
+
+Create pipelines
+Introduce unit tests in the pipeline
+Deploy the application using the pipeline
+Review Criteria - 10 marks total
+Run unit tests using Jasmine 1 point
+
+Create the Dockerfile to deploy in a local Docker container 1 point
+
+Build the Docker image 1 point
+
+Deploy and test the web application deployed in a Docker container 1 point
+
+Tag and push to IBM Cloud Registry 1 point
+
+Deploy the Tax Calculator on IBM Cloud 1 point
+
+Create the Tekton Pipeline tasks 1 point
+
+Extend the Pipeline to call required tasks 1 point
+
+Run the Tekton pipeline 1 point
+
+Deploy the image built using pipeline 1 point
+
+Author(s)
+Muhammad Yahya
+  Play
+
+
+00:00
+00:00
+Mute
+
+Settings
+Final Project - Part A: Create Epics and Stories
+Estimated time needed: 25 minutes
+
+In this lab, you will create the Epic and user stories for the Tax Calculator project. You may use any Kanban board that you have previously signed up for during this course. Alternatively, you may use a spreadsheet or any text editor to write the Epic and user stories.
+
+Objectives
+After completing this lab, you will be able to:
+
+Create an Epic for modernizing the application.
+Create several user stories for the epic.
+Task 1: Create an Epic
+Log back into your Kanban Board and create an Epic for the upcoming enhancements.
+
+An Epic is a large and high-level item of work that provides a way to capture and communicate the broader goal of a project. They are too complex to be estimated accurately at the outset, so they are often broken down into smaller, more manageable user stories or features.
+
+Epic Title: Modernise Tax Calculator
+
+Epic Description: The Tax Calculator currently runs as a manually deployed static application and lacks a robust pipeline in place. This epic focuses on modernizing the application to deploy it on IBM Cloud1. But the web application will not just be simply lifted and shifted to cloud. The application will be containerized using Docker container2. The deployment will be managed through a pipeline, which will also ensure that all unit tests pass4 before deployment.
+
+The following hints will help you create relevant user stories in the next Task:
+
+Deploying on IBM Cloud
+
+Containerizing the application
+
+Creating pipeline for packaging the application
+
+Running unit tests as part of pipeline
+
+Task 2: Create Stories
+Create following user stories in Kanban Board.
+
+Containerizing the application
+Description: To ensure that each unit of code performs as expected, run unit tests. And if the unit tests pass, deploy the application to a docker container.
+
+Deploying on IBM Cloud
+Description: Instead of hosting on self-managed or in-house virtual machines, deploy the application on IBM Cloud, using IBM Cloud Code Engine.
+
+Creating a pipeline for packaging and deploying the application
+Description: The current process of packaging and deploying involves too many manual steps. Use a Tekton pipeline to automate the build, test, and packaging stages of the application.
+
+Conclusion
+This lab equips you to modernize and automate the Tax Calculator deployment on IBM Cloud, streamlining the process and enhancing application efficiency and scalability​.
+
+Author(s)
+Muhammad Yahya
+
+© IBM Corporation. All rights reserved.  Final Project - Part B and C: Tax Calculator
+cognitiveclass.ai logo
+Estimated time needed: 45 minutes
+
+In Part B and C of this final project for the Cloud Native, DevOps, Agile, and NoSQL; you will work on Tax Calculator and enhance it using the skills you learned in this course.
+
+Objectives:
+Containerize the application
+Run unit tests as part of the pipeline
+Deploy the application when all tests pass
+Replace the hard-coded configuration (tax brackets)
+Deploy the application again when all tests pass  Working with files in Cloud IDE
+If you are new to Cloud IDE, this section will show you how to create and edit files, which are part of your project in Cloud IDE.
+
+To view your files and directories inside Cloud IDE, click this files icon to reveal it.
+
+Files icon highlighted to reveal project directory
+
+If you have cloned (using git clone command) boilerplate/starting code, then it will look like the following:
+
+Project directory showing boilerplate code
+
+Otherwise, a blank project looks like this:
+
+Empty project directory
+
+Create a new file
+You can right-click and select the New File option to create a file in your project.
+
+Create new file menu
+
+You can also choose File -> New File to do the same.
+
+It will then prompt you to enter the name of this new file. In the example below, we are creating sample.html.
+
+New file name
+
+Clicking the file name sample.html in the directory structure will open the file on the right pane. You can create all different types of files; for example, FILE_NAME.js for JavaScript files.
+
+Viewing sample file
+
+In the example, we just pasted some basic html code and then saved the file.
+
+Editing sample file
+
+And saving it by:
+
+Using the menu
+Press command + S on Mac or CTRL + S on Windows
+Or it can Autosave it for you too
+Save file menu Verify the environment and command-line tools
+Open a terminal window by using the menu in the editor: Terminal > New Terminal.
+Note: If the terminal is already opened, please skip this step.
+
+Open new terminal
+
+Verify that docker CLI is installed.
+1
+docker --version
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+You should see the following output, although the version may be different:
+
+1.png
+
+Verify that ibmcloud CLI is installed.
+1
+ibmcloud version
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+You should see the following output, although the version may be different:
+
+IBM Cloud version Start Code Engine
+On the menu in your lab environment, click the Cloud dropdown menu and select Code Engine. The code engine setup panel appears. Click Create Project to begin.
+
+Start code engine menu and Create Project highlighted
+
+The code engine environment takes a while to prepare. You will see the progress status is indicated in the setup panel.
+
+Code engine progress status show as preparing
+
+Once the code engine setup is complete, you can see that it is active. Click Code Engine CLI to begin the pre-configured CLI in the terminal, as shown below.
+
+Code engine start CLI highlighted in red
+
+You will observe that the pre-configured CLI startup and the home directory are set to the current directory. As a part of the pre-configuration, the project has been set up, and Kubeconfig is set up. The details are shown on the terminal as follows.
+
+Code Engine CLI Final
+
+Another way to get to it is by clicking the following action:
+
+ Create Code Engine Project in IDE Set-up : Create application
+Open a terminal window by using the menu in the editor: Terminal > New Terminal.
+Terminal window shows terminal menu with New Terminal highlighted
+
+If you are not currently in the project folder, copy and paste the following code to change to your project folder.
+1
+cd /home/project
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+Run the following command to clone the Git repository that contains the starter code needed for this project if the Git repository doesn't already exist.
+1
+git clone https://github.com/ibm-developer-skills-network/zntwk-tax_calculator.git
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+Change to the directory zntwk-tax_calculator to start working on the lab.
+1
+cd zntwk-tax_calculator
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+List the contents of this directory to see the artifacts for this lab.
+1
+ls
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+Run the following command on the terminal to host your web page.
+1
+python3 -m http.server
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+To test your application in the browser, run the application first.
+ Launch Application
+
+It will look like this:
+Launch application output
+
+In your terminal, press CTRL+C to stop your web server.
+  Task 3: Manual unit test
+Unit Tests
+Unit tests are a type of software testing where individual components, or units, of a software application, are tested in isolation to ensure that they function correctly. The goal of unit testing is to verify that each unit of code performs as expected and meets its specified requirements.
+
+Jasmine
+Jasmine is a popular testing framework for JavaScript that provides a behavior-driven development (BDD) style syntax for writing unit tests.
+
+Steps
+1
+2
+npm install
+npx jasmine
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+Which should produce an output like the below showing all 7 unit tests have passed:
+
+1
+2
+3
+4
+5
+6
+7
+8
+Randomized with seed 78367
+Started
+.......
+7 specs, 0 failures
+Finished in 0.013 seconds
+Randomized with seed 78367 (jasmine --random=true --seed=78367)
+
+Copied!
+
+Wrap Toggled!
+2.png
+
+Assessment: Take a screen capture of the output and save the screen capture as 01-jasmine-tests-passing.png.
+
+  Task 4: Containerize the application
+Let's start modernizing our application. The first step towards it is to containerize it using Docker.
+
+What is Docker
+Docker is an open-source platform and toolset that allows you to automate the deployment, scaling, and management of applications using containerization. Containers are lightweight, isolated, and portable environments that package applications and their dependencies, enabling them to run consistently across different computing environments.
+
+Create Dockerfile
+Your task:
+
+Define nginx as parent image.
+Copy each file individually to /usr/share/nginx/html/.
+ Open Dockerfile in IDE
+
+Click here for Hint
+Click here for the solution
+Dockerfile
+
+Assessment: Take a screen capture of the Dockerfile and save the screen capture as 02-dockerfile.png.
+
+Build Docker image
+Now that we have created the Dockerfile, let's build our custom image. You will name the image tax-calculator.
+
+Click here for Hint
+Click here for Solution
+3.png
+
+Assessment: Take a screen capture of the output and save the screen capture as 03-docker-build-output.png.
+
+List Docker images and verify you see tax-calculator.
+
+1
+docker images
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+Deploy Docker image
+Once you build the container, deploy the container on port 8080.
+
+Click here for a hint
+Click here for the solution
+Test the application in a browser.
+
+ Launch Application
+
+Docker hosted app running in browser
+
+Assessment: Take a screenshot of the output and save it as 04-docker-image-browser.png.
+
+And finally, clean up running containers.
+
+1
+docker ps -aq | xargs docker stop | xargs docker rm Task 5: Manual deploy on IBM Cloud
+As part of this learning platform, you are provided with basic infrastructure on IBM Cloud. You don't need an external sign up, and all setup has been done for you already.
+
+ Create Code Engine Project in IDE
+
+Build and Tag Docker image
+The Docker build command builds Docker images from a Dockerfile.
+
+Click here for a hint
+Click here for the solution
+Push the image to IBM Cloud
+To upload an image to a registry, use docker push.
+
+Let's push the image to IBM Cloud.
+
+Click here for the solution
+4.png
+
+Assessment: Take a screenshot of the output and save it as 05-docker-icr-push.png.
+
+Deploy the image to IBM Cloud
+Deploy the image on IBM Cloud Code Engine.
+
+1
+ibmcloud ce application create --name tax-calculator --image us.icr.io/${SN_ICR_NAMESPACE}/tax-calculator --registry-secret icr-secret --port 80
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+Check the status
+
+1
+ibmcloud ce application get --name tax-calculator
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+5.png
+
+Assessment: Take a screen capture of the output and save the screen capture as 06-deployed-on-cloud.png.
+
+Take Cloud URL from the output; which looks something like the following: https://tax-calculator.somerandomalphanumeric.us-south.codeengine.appdomain.cloud Task 6: Setup Pipeline
+You will now create the pipeline to perform manual actions as part of Continuous Deployment.
+
+Open a new terminal and go to /home/project.
+
+1
+cd /home/project
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+Clone the boilerplate yaml files provided for the Tekton pipeline.
+
+1
+git clone https://github.com/ibm-developer-skills-network/juphc-tc_pipeline
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+Change to the directory juphc-tc_pipeline to start working on the pipeline.
+
+1
+cd juphc-tc_pipeline
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+You can also see your code in the Project structure.
+
+  Task 7: Add Tasks for Pipeline use
+ Open tasks.yaml in IDE
+
+Create npminstall task
+Add a new task called npminstall, using the image node:20-buster-slim, running these commands:
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+set -e
+echo "***** Environment *****"
+npm --version
+pwd
+echo "***** Cleaning npm cache *****"
+npm cache clean --force
+echo "***** Running npm install *****"
+npm install
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+Click here for Hint
+Click here for Solution
+Create the Jasmine task
+Add a new task called jasmine, using the image node:20-buster-slim, running these commands:
+
+1
+2
+3
+4
+set -e
+echo "***** Running jasminetests *****"
+npx jasmine
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+Click here for a hint
+Click here for the solution
+tasks.yaml file with changes
+
+Assessment: Take a screenshot of the tasks.yaml and save it as 07-tasks-yaml.png.
+
+  Task 7: Create a Secret
+Workspaces allow Tasks to declare parts of the filesystem that need to be provided at runtime by TaskRuns. A TaskRun can make these parts of the filesystem available in many ways:
+
+using a read-only ConfigMap or Secret
+an existing PersistentVolumeClaim shared with other Tasks
+create a PersistentVolumeClaim from a provided VolumeClaimTemplate
+or simply an emptyDir that is discarded when the TaskRun completes
+The first step you need to create that secret, as mentioned above.
+
+Secret: A Secret is an object that contains a small amount of sensitive data, such as a password, a token, or a key.
+
+You need the following secret to be able to deploy to IBM Container Registry.
+
+1
+2
+3
+4
+kubectl create secret docker-registry docker-reg-creds \
+  --docker-server=us.icr.io \
+  --docker-username=iamapikey \
+  --docker-password=$IBMCLOUD_API_KEY
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+  Task 8: Create pipeline
+Because our DevOps process has been streamlined with pipeline for testing, packaging and deploying, we simply need to trigger it to deploy with full confidence that it will work as long as it meets all the criteria.
+
+Similar to boilerplate yaml for Tasks, you are provided with pipeline.yaml.
+
+Call npminstall task
+Add a new task called npminstall where taskRef / name npm running after clone:
+
+Click here for a hint
+Click here for a solution
+Call jasmine task
+Add a new task called tests where taskRef / name jasmine running after npminstall:
+
+Click here for a hint
+Click here for the solution
+Call buildah task
+Add a new task called build where taskRef / name buildah with kind ClusterTask, passing the IMAGE parameter to the value $(params.build-image), running after tests.
+
+Additionally, instead of just pipeline-workspace, you will also need to add dockerconfig-ws too.
+
+Click here for a hint
+Click here for the solution
+Pipeline after adding new tasks
+
+Assessment: Take a screen capture of the pipeline.yaml and save it as 08-pipeline-changes.png.
+
+Click here for see final pipeline.yaml Task 9: Create run.yaml
+Now you need to create tc-pipeline/run.yaml that will run your pipeline.
+
+ Open run.yaml in IDE
+
+A PipelineRun allows you to instantiate and execute a Pipeline on-cluster. A Pipeline specifies one or more Tasks in the desired order of execution. A PipelineRun executes the Tasks in the Pipeline in the order they are specified until all Tasks have executed successfully or a failure occurs.
+
+In your run.yaml file, create a definition of kind PipelineRun, with the following:
+
+Path	Value
+kind	PipelineRun
+metadata.generateName	tc-pipeline-run-
+spec.serviceAccountName	pipeline
+spec.pipelineRef.name	tc-pipeline
+workspaces.name	pipeline-workspace
+workspaces.persistentVolumeClaim.claimName	pipelinerun-pvc
+workspaces.name	dockerconfig-ws
+workspaces.secret.secretName	docker-reg-creds
+Along with following params:
+
+param.name	param.value
+repo-url	“https://github.com/ibm-developer-skills-network/zntwk-tax_calculator.git"
+branch	“main”
+app-name	“tax-calculator”
+Click here for a hint
+Click here for the solution
+
+Assessment: Take a screen capture of the run.yaml and save it as 09-run-yaml.png.
+
+  Task 10: Apply, Create, and Deploy
+Now you have all you need to build and push using pipeline. Let’s start it:
+
+Kubectl apply
+Apply manages applications through files defining Kubernetes resources. It creates and updates resources in a cluster through running kubectl apply. This is the recommended way of managing Kubernetes applications on production.
+
+Apply Persistent Volume Claim
+Click here for a hint
+Click here for the solution
+Install ibmcloud task in our namespace.
+Click here for a hint
+Click here for solution
+Apply tasks.yaml and pipeline.yaml
+Click here for a hint
+Click here for the solution
+kubectl create run.yaml
+The command, set kubectl apply, is used at a terminal's command-line window to create or modify Kubernetes resources defined in a manifest file. This is called a declarative usage. The state of the resource is declared in the manifest file, then kubectl apply is used to implement that state.
+
+In contrast, the command, set kubectl create, is the command you use to create a Kubernetes resource directly at the command line. This is an imperative usage. You can also use kubectl create against a manifest file to create a new instance of the resource.
+
+Click here for a hint
+Click here for the solution
+Monitor the run
+You retrieve last logs with the following command:
+
+1
+tkn pipelinerun logs --last
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+Deploy on the cloud
+Before you issue the IBM Code Engine CLI command to deploy your tagged application, make sure your Code Engine has correct details in the context.
+
+ Create Code Engine Project in IDE
+
+Once the code engine setup is complete, you can see that it is active. Click Code Engine CLI to begin the pre-configured CLI in the terminal, as shown below.
+
+Code engine start CLI highlighted in red
+
+Verify
+1
+ibmcloud ce project current
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+Deploy
+1
+ibmcloud ce application create --name tax-calculator --image us.icr.io/${SN_ICR_NAMESPACE}/tax-calculator --registry-secret icr-secret --port 80
+
+Copied!
+
+Wrap Toggled!
+
+Executed!
+Note: if you encounter an error related to the application name, it may be because you have previously deployed an application with the same name. In such cases, please rename the application to proceed.
+
+Verify in the browser
+You deployed from another branch so you can see the difference.
+
+Assessment: Take a screen capture of the final output and save it as 10-final-output.png.
+
+final output  i have setup a folder and opened it in vscode now help me to complete this task step by step for a beginner

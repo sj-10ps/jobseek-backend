@@ -71,7 +71,7 @@ router.post("/companyregister", upload.single("logo"), async (req, res) => {
   } = req.body;
   console.log(req.body)
  
-  const logo = req.file ? req.file.filename : null;
+  const logo = req.file ? req.file.path : null;
   const existing = await loginmodel.findOne({ email:email });
   if (existing) {
     res.json({ status: "user already exists" });
