@@ -6,6 +6,9 @@ const loginmodel=require('../models/Login')
 const feedbackmodel=require('../models/feedback')
 const { transporter } = require("./mailer");
 
+const {Resend}=require('resend')
+const resend=new Resend(process.env.RESENDURL)
+
 router.get('/getallusers',async(req,res)=>{
     const data=await userModel.find().sort({createdat:-1})
     console.log(data)
@@ -39,8 +42,8 @@ router.post('/approvecompany',async(req,res)=>{
     const companyinstance=await companymodel.findByIdAndUpdate(req.body.comid,{$set:{status:'approved',approvedat:Date.now()}})
     await loginmodel.findByIdAndUpdate(companyinstance.login,{$set:{usertype:'company'}})
     const link=`http://localhost:3000/login`
-    await transporter.sendMail({
-        from:'Jobseek <no-reply@jobseek.com>',
+    await resend.emails.send({
+        from:'Jobseek <onboarding@resend.dev>',
         to:companyinstance.email,
         subject:'registration approval',
         html:`<p>Your Registration Have Been Approved You Can Now login With Your credentials</p>
@@ -59,8 +62,8 @@ router.post('/approvecompany',async(req,res)=>{
     const reply=req.body.reply
     const fbid=req.body.fbid
     const email=req.body.email
-    await transporter.sendMail({
-        from:'Jobseek <no-reply@jobseek.com>',
+    await resend.emails.send({
+        from:'Jobseek <onboarding@resend.dev>',
         to:email,
         subject:'Reply to your feedback',
         html:`Thank you for your valuable feedback,

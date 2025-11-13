@@ -7,6 +7,8 @@ const usermodel=require('../models/user')
 const skillmodel=require('../models/skills')
 const multer = require('multer')
 const {transporter}=require('./mailer')
+const  {Resend}=require('resend')
+const resend=new Resend(process.env.RESENDURL)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/'); // folder where files will be stored
@@ -108,12 +110,12 @@ router.post('/selectapplicants',async(req,res)=>{
           <p>${companyname} Team</p>
         `,
     }
-    await transporter.sendMail(mailoptions)
+    await resend.emails.send(mailoptions)
   }else{
    
       // ✅ Rejected email
       const mailOptions = {
-        from: `"${companyname}" ${companyemail}`,
+        from: `"${companyname}" <onboarding@resend.dev>`,
         to: usermail,
         subject: `Application Status for ${jobtitle}`,
         html: `
@@ -127,7 +129,7 @@ router.post('/selectapplicants',async(req,res)=>{
         `,
       };
 
-      await transporter.sendMail(mailOptions);
+      await resend.emails.send(mailOptions);
   }
   return res.json({status:"ok"})
 })
@@ -152,7 +154,7 @@ router.post('/inviteforinterview',async(req,res)=>{
 
 
     const mailoptions={
-       from:`${companyname} ${companyemail}`,
+       from:`${companyname} <onboarding@resend.dev>`,
        to:usermail,
        subject: `Congratulations! You have been invited for an interview for the ${jobtitle} in ${companyname}`,
         html: `
@@ -165,7 +167,7 @@ router.post('/inviteforinterview',async(req,res)=>{
         `,
     }
     
-    await transporter.sendMail(mailoptions)
+    await res.sendMail(mailoptions)
     return res.json({status:"ok"})
 
 })

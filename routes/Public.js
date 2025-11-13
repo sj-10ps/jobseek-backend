@@ -180,6 +180,7 @@ router.post("/forgotpassword", upload.none(), async (req, res) => {
   const resetlink = `https://jobseek-frontend-e93g.onrender.com/forgotpost/${token}`;
   await resend.emails.send({
     from: "JobSeek <onboarding@resend.dev>",
+  
     to: existing.email,
     subject: "Reset password",
     html: `<p>click <a href='${resetlink}'>here</a> to reset password'</p>`,
