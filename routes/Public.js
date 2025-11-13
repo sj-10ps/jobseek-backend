@@ -173,7 +173,7 @@ router.post("/forgotpassword", upload.none(), async (req, res) => {
     return res.json({ status: "email not registered" });
   }
   const token = jwt.sign({ userId: existing._id }, "sj", { expiresIn: "15m" });
-  const resetlink = `http://localhost:3000/forgotpost/${token}`;
+  const resetlink = `https://jobseek-frontend-e93g.onrender.com/forgotpost/${token}`;
   await transporter.sendMail({
     from: "pssj8208@gmail.com",
     to: existing.email,
