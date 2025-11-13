@@ -179,7 +179,7 @@ router.post("/forgotpassword", upload.none(), async (req, res) => {
   const token = jwt.sign({ userId: existing._id }, "sj", { expiresIn: "15m" });
   const resetlink = `https://jobseek-frontend-e93g.onrender.com/forgotpost/${token}`;
   await resend.emails.send({
-    from: "pssj8208@gmail.com",
+    from: "JobSeek <onboarding@resend.dev>",
     to: existing.email,
     subject: "Reset password",
     html: `<p>click <a href='${resetlink}'>here</a> to reset password'</p>`,
