@@ -72,7 +72,13 @@ const storageresume=new CloudinaryStorage({
   cloudinary,
   params:{
     folder:'resume',
-    resource_type:'raw'
+    resource_type:'raw',
+      public_id: (req, file) => {
+      // Remove spaces and use original filename without changing the extension
+      const name = file.originalname.split('.')[0]; // get name without extension
+      const ext = file.originalname.split('.').pop(); // get extension
+      return `${name}.${ext}`; // ensures .pdf is kept
+    },
   }
 })
 
@@ -407,7 +413,7 @@ router.post('/uploadcustomresume',uploadresume.single('pdf'),async(req,res)=>{
   await datatosave.save()
   return res.json({status:"ok"})
   }else{
-    await resumemodel.findOneAndUpdate({user:userid,templateType:'custom'},{$set:{generatedPdf:req.file.path}})
+    await resumemodel.findOneAndUpdate({user:userid,templateType:'custom'},{$set:{generatedPdf:pdf}})
     return res.json({status:"ok"})
   }
 
