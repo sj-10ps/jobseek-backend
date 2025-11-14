@@ -58,29 +58,34 @@ const storagecertificate = new CloudinaryStorage({
   cloudinary,
   params:{
     folder:'certificate',
-
+  
   }
 })
 
 
 
-
-
-
-
-const storageresume=new CloudinaryStorage({
+const customresumestorage = new CloudinaryStorage({
   cloudinary,
-  params:{
-    folder:'resume',
-    resource_type:'raw',
-      public_id: (req, file) => {
-      // Remove spaces and use original filename without changing the extension
-      const name = file.originalname.split('.')[0]; // get name without extension
-      const ext = file.originalname.split('.').pop(); // get extension
-      return `${name}.${ext}`; // ensures .pdf is kept
-    },
+  params: {
+    folder: "custom_resume",
+    resource_type: "raw",
+    format: "pdf",            // ensures .pdf extension
+    access_mode: "public",    // VERY important
+    public_id: (req, file) =>
+      `resume_${req.body.userid}_${Date.now()}`
   }
-})
+});
+
+
+
+const storageresume = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'resume',
+    resource_type:'raw',
+    public_id: (req, file) => file.originalname.split('.')[0].replace(/\s+/g, '_'),
+  },
+});
 
 
 
@@ -90,6 +95,7 @@ const upload=multer({storage:storage})
 const uploadcertificate=multer({storage:storagecertificate})
 
 const uploadprofile=multer({storage:storageprofile})
+const uploadcustomresume=multer({storage:customresumestorage})
 const uploadresume=multer({storage:storageresume})
 router.post('/fetchprofile',async(req,res)=>{
     const {userid}=req.body
@@ -347,7 +353,8 @@ router.post('/certification',uploadcertificate.single('media') ,async (req, res)
 });
 
 
-router.post('/uploadresume',uploadresume.single('resume'),async(req,res)=>{
+router.post('/uploadresume',uploadcustomresume.single('resume'),async(req,res)=>{
+
 
  const existing=await resumemodel.findOne({user:req.body.userid,templateType:'default'})
  if(existing){
@@ -358,7 +365,7 @@ router.post('/uploadresume',uploadresume.single('resume'),async(req,res)=>{
  const datatosave= new resumemodel({
     user:req.body.userid,
     templateType:'default',
-    generatedPdf:req.file.path
+    generatedPdf:req.file.secure_url
   })
   const data=await datatosave.save()
   return res.json({status:"ok",filename:data.generatedPdf})
@@ -396,11 +403,12 @@ router.post('/deleteselectedrecord',upload.none(),async(req,res)=>{
 })
 
 
-router.post('/uploadcustomresume',uploadresume.single('pdf'),async(req,res)=>{
+router.post('/uploadcustomresume',uploadcustomresume.single('pdf'),async(req,res)=>{
 
   console.log(req.file.path)
-   console.log("wekjfhfweiufwuidhdwqiuh")
+  
   const pdf=req.file.path
+  console.log(pdf)
   const userid=req.body.userid
  
   const existing=await resumemodel.findOne({user:userid,templateType:'custom'})

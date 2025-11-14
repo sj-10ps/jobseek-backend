@@ -16,15 +16,20 @@ const feedbackmodel=require('../models/feedback')
 const { route } = require("./User");
 
 const resend=new Resend(process.env.RESENDURL)
+const {v2:cloudinary}=require('cloudinary')
+const {CloudinaryStorage}=require('multer-storage-cloudinary')
+cloudinary.config({
+   cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+})
 
 const router = express.Router();
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "media/profile");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + ".jpg");
-  },
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params:{
+    folder:'logo'
+  }
 });
 const upload = multer({ storage: storage });
 
