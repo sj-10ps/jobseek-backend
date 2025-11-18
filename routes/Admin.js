@@ -10,6 +10,7 @@ const {Resend}=require('resend')
 const resend=new Resend(process.env.RESENDURL)
 
 router.get('/getallusers',async(req,res)=>{
+    
     const data=await userModel.find().sort({createdat:-1})
     console.log(data)
     return res.json(data)

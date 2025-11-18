@@ -22,7 +22,7 @@ const server=http.createServer(app)
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.use(cors({
-  origin: '*',
+  origin: process.env.frontendurl||'*',
   credentials: true                
 }));
 
@@ -35,10 +35,13 @@ app.use('',adminroute)
 const connectedusers={}
 const io=new Server(server,{
     cors:{
-        origin:'*',
+        origin:process.env.frontendurl||'*',
         methods:["GET","POST"],
          credentials: true 
-    }
+    },
+      transports: ["websocket", "polling"],
+      pingTimeout: 60000,
+      pingInterval: 25000
 })
 
 io.on("connection",(socket)=>{
